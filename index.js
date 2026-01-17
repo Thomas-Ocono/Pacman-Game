@@ -23,7 +23,7 @@ class Player {
   constructor({ position, velocity }) {
     this.position = position;
     this.velocity = velocity;
-    this.radius = 15;
+    this.radius = 19.5;
   }
 
   draw() {
@@ -67,13 +67,16 @@ const keys = {
     pressed: false,
   },
 };
+let lastKey = "";
 
 const map = [
-  ["-", "-", "-", "-", "-", "-"],
-  ["-", " ", " ", " ", " ", "-"],
-  ["-", " ", "-", "-", " ", "-"],
-  ["-", " ", " ", " ", " ", "-"],
-  ["-", "-", "-", "-", "-", "-"],
+  ["-", "-", "-", "-", "-", "-", "-"],
+  ["-", " ", " ", " ", " ", " ", "-"],
+  ["-", " ", "-", " ", "-", " ", "-"],
+  ["-", " ", " ", " ", " ", " ", "-"],
+  ["-", " ", "-", " ", "-", " ", "-"],
+  ["-", " ", " ", " ", " ", " ", "-"],
+  ["-", "-", "-", "-", "-", "-", "-"],
 ];
 
 map.forEach((row, rowIndex) => {
@@ -93,25 +96,124 @@ map.forEach((row, rowIndex) => {
   });
 });
 
+function circleCollidesWithRectangle({ circle, rectangle }) {
+  return (
+    circle.position.y - circle.radius + circle.velocity.y <=
+      rectangle.position.y + rectangle.height &&
+    circle.position.x + circle.radius + circle.velocity.x >=
+      rectangle.position.x &&
+    circle.position.y + circle.radius + circle.velocity.y >=
+      rectangle.position.y &&
+    circle.position.x - circle.radius + circle.velocity.x <=
+      rectangle.position.x + rectangle.width
+  );
+}
+
 function animate() {
   requestAnimationFrame(animate);
   c.clearRect(0, 0, canvas.width, canvas.height);
 
   boundaries.forEach((boundry) => {
     boundry.draw();
-    player.update();
-    player.velocity.y = 0;
-    player.velocity.x = 0;
+
+    if (keys.w.pressed && lastKey === "w") {
+      for (let i = 0; i < boundaries.length; i++) {
+        const boundry = boundaries[i];
+        if (
+          circleCollidesWithRectangle({
+            circle: {
+              ...player,
+              velocity: {
+                x: 0,
+                y: -1,
+              },
+            },
+            rectangle: boundry,
+          })
+        ) {
+          player.velocity.y = 0;
+          break;
+        } else {
+          player.velocity.y = -1;
+        }
+      }
+    } else if (keys.a.pressed && lastKey === "a") {
+      for (let i = 0; i < boundaries.length; i++) {
+        const boundry = boundaries[i];
+        if (
+          circleCollidesWithRectangle({
+            circle: {
+              ...player,
+              velocity: {
+                x: -1,
+                y: 0,
+              },
+            },
+            rectangle: boundry,
+          })
+        ) {
+          player.velocity.x = 0;
+          break;
+        } else {
+          player.velocity.x = -1;
+        }
+      }
+    } else if (keys.s.pressed && lastKey === "s") {
+      for (let i = 0; i < boundaries.length; i++) {
+        const boundry = boundaries[i];
+        if (
+          circleCollidesWithRectangle({
+            circle: {
+              ...player,
+              velocity: {
+                x: 0,
+                y: 1,
+              },
+            },
+            rectangle: boundry,
+          })
+        ) {
+          player.velocity.y = 0;
+          break;
+        } else {
+          player.velocity.y = 1;
+        }
+      }
+    } else if (keys.d.pressed && lastKey === "d") {
+      for (let i = 0; i < boundaries.length; i++) {
+        const boundry = boundaries[i];
+        if (
+          circleCollidesWithRectangle({
+            circle: {
+              ...player,
+              velocity: {
+                x: 1,
+                y: 0,
+              },
+            },
+            rectangle: boundry,
+          })
+        ) {
+          player.velocity.x = 0;
+          break;
+        } else {
+          player.velocity.x = 1;
+        }
+      }
+    }
+
+    if (
+      circleCollidesWithRectangle({
+        circle: player,
+        rectangle: boundry,
+      })
+    ) {
+      console.log("Collision!");
+      player.velocity.x = 0;
+      player.velocity.y = 0;
+    }
   });
-  if (keys.w.pressed) {
-    player.velocity.y = -1;
-  } else if (keys.a.pressed) {
-    player.velocity.x = -1;
-  } else if (keys.s.pressed) {
-    player.velocity.y = 1;
-  } else if (keys.d.pressed) {
-    player.velocity.x = 1;
-  }
+  player.update();
 }
 
 animate();
@@ -121,15 +223,19 @@ window.addEventListener("keydown", ({ key }) => {
   switch (key) {
     case "w":
       keys.w.pressed = true;
+      lastKey = "w";
       break;
     case "a":
       keys.a.pressed = true;
+      lastKey = "a";
       break;
     case "s":
       keys.s.pressed = true;
+      lastKey = "s";
       break;
     case "d":
       keys.d.pressed = true;
+      lastKey = "d";
       break;
   }
 });
