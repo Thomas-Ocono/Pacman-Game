@@ -1,5 +1,6 @@
 const canvas = document.querySelector("canvas");
 const c = canvas.getContext("2d");
+let score = 0;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -23,7 +24,7 @@ class Player {
   constructor({ position, velocity }) {
     this.position = position;
     this.velocity = velocity;
-    this.radius = 19.5;
+    this.radius = 19.9;
   }
 
   draw() {
@@ -40,6 +41,22 @@ class Player {
     this.position.y += this.velocity.y;
   }
 }
+
+class Pellet {
+  constructor({ position }) {
+    this.position = position;
+    this.radius = 3;
+  }
+
+  draw() {
+    c.beginPath();
+    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+    c.fillStyle = "white";
+    c.fill();
+    c.closePath();
+  }
+}
+const pellets = [];
 
 const boundaries = [];
 const player = new Player({
@@ -70,13 +87,19 @@ const keys = {
 let lastKey = "";
 
 const map = [
-  ["-", "-", "-", "-", "-", "-", "-"],
-  ["-", " ", " ", " ", " ", " ", "-"],
-  ["-", " ", "-", " ", "-", " ", "-"],
-  ["-", " ", " ", " ", " ", " ", "-"],
-  ["-", " ", "-", " ", "-", " ", "-"],
-  ["-", " ", " ", " ", " ", " ", "-"],
-  ["-", "-", "-", "-", "-", "-", "-"],
+  ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"],
+  ["-", " ", " ", " ", " ", " ", " ", " ", " ", " ", "-"],
+  ["-", " ", "-", " ", "-", "-", "-", " ", "-", " ", "-"],
+  ["-", " ", " ", " ", " ", "-", " ", " ", " ", " ", "-"],
+  ["-", " ", "-", "-", " ", " ", " ", "-", "-", " ", "-"],
+  ["-", " ", " ", " ", " ", "-", " ", " ", " ", " ", "-"],
+  ["-", " ", "-", " ", "-", "-", "-", " ", "-", " ", "-"],
+  ["-", " ", " ", " ", " ", "-", " ", " ", " ", " ", "-"],
+  ["-", " ", "-", "-", " ", " ", " ", "-", "-", " ", "-"],
+  ["-", " ", " ", " ", " ", "-", " ", " ", " ", " ", "-"],
+  ["-", " ", "-", " ", "-", "-", "-", " ", "-", " ", "-"],
+  ["-", " ", " ", " ", " ", " ", " ", " ", " ", " ", "-"],
+  ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"],
 ];
 
 map.forEach((row, rowIndex) => {
@@ -92,6 +115,15 @@ map.forEach((row, rowIndex) => {
           })
         );
         break;
+      case " ":
+        pellets.push(
+          new Pellet({
+            position: {
+              x: symbolIndex * Boundry.width + Boundry.width / 2,
+              y: rowIndex * Boundry.height + Boundry.height / 2,
+            },
+          })
+        );
     }
   });
 });
@@ -113,6 +145,22 @@ function animate() {
   requestAnimationFrame(animate);
   c.clearRect(0, 0, canvas.width, canvas.height);
 
+  for (let i = pellets.length - 1; 0 < i; i--) {
+    const pellet = pellets[i];
+    pellet.draw();
+
+    if (
+      Math.hypot(
+        pellet.position.x - player.position.x,
+        pellet.position.y - player.position.y
+      ) <
+      pellet.radius + player.radius
+    ) {
+      pellets.splice(i, 1);
+      score = score + 1;
+      document.getElementById("score").innerHTML = score * 10;
+    }
+  }
   boundaries.forEach((boundry) => {
     boundry.draw();
 
